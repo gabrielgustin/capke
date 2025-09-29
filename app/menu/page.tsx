@@ -27,27 +27,14 @@ import { VegetarianBadge } from "@/components/vegetarian-badge"
 import { NewItemBadge } from "@/components/new-item-badge"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
-
-// Añadir la importación de useSearchParams
 import { useSearchParams } from "next/navigation"
-
-// Añadir la importación del nuevo componente
 import { RefreshDataButton } from "@/components/refresh-data-button"
-
-// Importar motion y las utilidades de animación
 import { motion } from "framer-motion"
-
-// Importar el nuevo componente
 import { StickyCategoryCarousel } from "@/components/sticky-category-carousel"
-
-// Importar el nuevo componente CategoryEditModal
 import { CategoryEditModal, type Category } from "@/components/category-edit-modal"
-
-// Importar componentes específicos para productos
 import { CroissantHeladoCard } from "@/components/featured-cards/croissant-helado-card"
 import { TostiEspinacaCard } from "@/components/featured-cards/tosti-espinaca-card"
 
-// Definir el tipo para un item del carrito
 interface CartItem {
   id: string
   name: string
@@ -62,35 +49,33 @@ export default function MenuPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
-  const [activeCategory, setActiveCategory] = useState<ProductCategory>("brunch") // Cambiado a "brunch" por defecto
+  const [activeCategory, setActiveCategory] = useState<ProductCategory>("brunch")
   const [cartItemCount, setCartItemCount] = useState(0)
   const carouselRef = useRef<HTMLDivElement>(null)
   const [isResetting, setIsResetting] = useState(false)
-
-  // Añadir un nuevo estado para manejar la edición de categorías
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [showCategoryModal, setShowCategoryModal] = useState(false)
-
-  // Añadir después de la declaración de carouselRef
   const searchParams = useSearchParams()
   const editProductId = searchParams.get("edit")
 
-  // Referencias para las secciones de categoría
-  const breakfastRef = useRef<HTMLDivElement>(null)
-  const brunchRef = useRef<HTMLDivElement>(null)
-  const lunchRef = useRef<HTMLDivElement>(null)
-  const dessertsRef = useRef<HTMLDivElement>(null)
-  const bakeryRef = useRef<HTMLDivElement>(null)
-  const coffeeRef = useRef<HTMLDivElement>(null)
+  // Referencias para las secciones de categorías
+  const categoryRefs = useRef<Record<ProductCategory, HTMLDivElement | null>>({
+    breakfast: null,
+    brunch: null,
+    lunch: null,
+    desserts: null,
+    bakery: null,
+    coffee: null,
+  })
 
-  // Función para forzar la actualización de productos
+  // Bandera para evitar conflictos entre scroll manual y programático
+  const isScrollingProgrammatically = useRef(false)
+
   const forceResetProducts = () => {
     setIsResetting(true)
-    // Limpiar localStorage
     if (typeof localStorage !== "undefined") {
       localStorage.removeItem("products")
     }
-    // Obtener productos predeterminados
     const defaultProducts = resetProducts()
     setProducts(defaultProducts)
 
@@ -99,28 +84,23 @@ export default function MenuPage() {
     }, 1000)
   }
 
-  // Cargar el estado de autenticación y productos al iniciar
   useEffect(() => {
     const authUser = getAuthState()
     if (authUser) {
       setUser(authUser)
     }
 
-    // Verificar si hay una versión almacenada
     const storedVersion = localStorage.getItem("products_version")
 
-    // Si la versión almacenada es diferente a la actual, forzar actualización
     if (storedVersion !== PRODUCTS_VERSION) {
       forceResetProducts()
       localStorage.setItem("products_version", PRODUCTS_VERSION)
     } else {
-      // Cargar productos normalmente
       const loadedProducts = getProducts()
       setProducts(loadedProducts)
     }
   }, [])
 
-  // Verificar si hay un producto para editar desde la URL
   useEffect(() => {
     if (editProductId && isAdmin) {
       const productToEdit = products.find((p) => p.id === editProductId)
@@ -131,7 +111,6 @@ export default function MenuPage() {
     }
   }, [editProductId, products])
 
-  // Cargar carrito y calcular cantidad de items
   useEffect(() => {
     const savedCart = localStorage.getItem("cart")
     if (savedCart) {
@@ -145,55 +124,86 @@ export default function MenuPage() {
     }
   }, [])
 
-  // Efecto para la animación inicial del carrusel
   useEffect(() => {
-    // Mostrar una animación sutil después de cargar la página
     const carousel = document.getElementById("categories-carousel")
     if (carousel) {
-      // Asegurarse de que el carrusel sea visible inicialmente
       setTimeout(() => {
         carousel.scrollLeft = 0
       }, 500)
     }
   }, [])
 
-  // Añadir este efecto después de los otros useEffect
   useEffect(() => {
-    // Asegurar que la página comience desde la parte superior al cargar
     window.scrollTo({
       top: 0,
       behavior: "auto",
     })
   }, [])
 
-  // Función para desplazar el carrusel a la izquierda
+  // Detección automática de la categoría visible durante el scroll
+  useEffect(() => {
+    const detectCategoryInView = () => {
+      if (isScrollingProgrammatically.current) return
+
+      const scrollPosition = window.scrollY + 200 // Offset para mejor detección
+
+      const categories: ProductCategory[] = ["brunch", "breakfast", "lunch", "desserts", "bakery", "coffee"]
+
+      for (let i = categories.length - 1; i >= 0; i--) {
+        const category = categories[i]
+        const element = categoryRefs.current[category]
+
+        if (element) {
+          const rect = element.getBoundingClientRect()
+          const elementTop = rect.top + window.scrollY
+
+          if (scrollPosition >= elementTop - 100) {
+            if (activeCategory !== category) {
+              setActiveCategory(category)
+            }
+            break
+          }
+        }
+      }
+    }
+
+    const handleScroll = () => {
+      requestAnimationFrame(detectCategoryInView)
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+
+    // Detectar categoría inicial
+    setTimeout(detectCategoryInView, 300)
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+    }
+  }, [activeCategory])
+
   const scrollLeft = () => {
     if (carouselRef.current) {
       carouselRef.current.scrollBy({ left: -150, behavior: "smooth" })
     }
   }
 
-  // Función para desplazar el carrusel a la derecha
   const scrollRight = () => {
     if (carouselRef.current) {
       carouselRef.current.scrollBy({ left: 150, behavior: "smooth" })
     }
   }
 
-  // Función para manejar el inicio de sesión exitoso
   const handleLoginSuccess = () => {
     const authUser = getAuthState()
     setUser(authUser)
   }
 
-  // Función para editar un producto
   const handleEditProduct = (productId: string) => {
     const productToEdit = products.find((p) => p.id === productId)
     if (productToEdit) {
       setEditingProduct(productToEdit)
       setShowEditModal(true)
     } else {
-      // Si no se encuentra en la lista de productos, crear uno nuevo con ese ID
       const productName = productId
         .split("-")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -211,21 +221,17 @@ export default function MenuPage() {
     }
   }
 
-  // Modificar la función handleSaveProduct para actualizar inmediatamente la UI
-  // Reemplazar la función handleSaveProduct con:
   const handleSaveProduct = (updatedProduct: Product) => {
     const updatedProducts = updateProduct(updatedProduct)
     setProducts(updatedProducts)
     setShowEditModal(false)
     setEditingProduct(null)
 
-    // Actualizar la categoría si ha cambiado
     if (updatedProduct.category && updatedProduct.category !== activeCategory) {
       setActiveCategory(updatedProduct.category)
       scrollToCategory(updatedProduct.category)
     }
 
-    // Mostrar notificación de éxito
     toast({
       title: "Cambios guardados",
       description: "Los cambios han sido guardados correctamente",
@@ -233,12 +239,10 @@ export default function MenuPage() {
     })
   }
 
-  // Función para añadir un nuevo producto
   const handleAddProduct = (newProduct: Product) => {
     const updatedProducts = addProduct(newProduct)
     setProducts(updatedProducts)
 
-    // Mostrar notificación de éxito
     toast({
       title: "Producto añadido",
       description: "El nuevo producto ha sido añadido correctamente",
@@ -246,14 +250,12 @@ export default function MenuPage() {
     })
   }
 
-  // Función para eliminar un producto
   const handleDeleteProduct = (productId: string) => {
     const updatedProducts = deleteProduct(productId)
     setProducts(updatedProducts)
     setShowEditModal(false)
     setEditingProduct(null)
 
-    // Mostrar notificación de éxito
     toast({
       title: "Producto eliminado",
       description: "El producto ha sido eliminado correctamente",
@@ -261,14 +263,11 @@ export default function MenuPage() {
     })
   }
 
-  // Función para restablecer los productos
   const handleResetProducts = () => {
     forceResetProducts()
   }
 
-  // Añadir la función para manejar la adición de categorías
   const handleAddCategory = () => {
-    // Crear una nueva categoría con valores predeterminados
     const newCategory: Category = {
       id: "",
       name: "Nueva Categoría",
@@ -281,15 +280,11 @@ export default function MenuPage() {
     setShowCategoryModal(true)
   }
 
-  // Añadir la función para guardar categorías
   const handleSaveCategory = (category: Category) => {
-    // Aquí iría la lógica para guardar la categoría
-    // Por ahora, solo cerramos el modal
     console.log("Categoría guardada:", category)
     setShowCategoryModal(false)
     setEditingCategory(null)
 
-    // Mostrar notificación de éxito
     toast({
       title: "Categoría guardada",
       description: "La categoría ha sido guardada correctamente",
@@ -297,14 +292,11 @@ export default function MenuPage() {
     })
   }
 
-  // Añadir la función para eliminar categorías
   const handleDeleteCategory = (categoryId: string) => {
-    // Aquí iría la lógica para eliminar la categoría
     console.log("Categoría eliminada:", categoryId)
     setShowCategoryModal(false)
     setEditingCategory(null)
 
-    // Mostrar notificación de éxito
     toast({
       title: "Categoría eliminada",
       description: "La categoría ha sido eliminada correctamente",
@@ -312,47 +304,27 @@ export default function MenuPage() {
     })
   }
 
-  // Función para hacer scroll a la categoría seleccionada
   const scrollToCategory = (category: ProductCategory) => {
     setActiveCategory(category)
+    isScrollingProgrammatically.current = true
 
-    // Solo hacer scroll si es una interacción manual del usuario
-    if (document.activeElement && document.activeElement.tagName === "BUTTON") {
-      let ref = null
-      switch (category) {
-        case "breakfast":
-          ref = breakfastRef
-          break
-        case "brunch":
-          ref = brunchRef
-          break
-        case "lunch":
-          ref = lunchRef
-          break
-        case "desserts":
-          ref = dessertsRef
-          break
-        case "bakery":
-          ref = bakeryRef
-          break
-        case "coffee":
-          ref = coffeeRef
-          break
-      }
+    const element = categoryRefs.current[category]
 
-      if (ref && ref.current) {
-        ref.current.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        })
-      }
+    if (element) {
+      const yOffset = -120
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset
+
+      window.scrollTo({ top: y, behavior: "smooth" })
+
+      // Resetear la bandera después de que termine el scroll
+      setTimeout(() => {
+        isScrollingProgrammatically.current = false
+      }, 1000)
     }
   }
 
-  // Verificar si el usuario es administrador
   const isAdmin = user?.username === "Admin1"
 
-  // Obtener títulos de categorías
   const getCategoryTitle = (category: ProductCategory): string => {
     switch (category) {
       case "breakfast":
@@ -372,7 +344,6 @@ export default function MenuPage() {
     }
   }
 
-  // Componente para el botón de edición del administrador
   const AdminEditButton = ({ productId }: { productId: string }) => {
     if (!isAdmin) return null
 
@@ -392,7 +363,6 @@ export default function MenuPage() {
     )
   }
 
-  // Componente para tarjeta simple personalizable
   const SimpleCard = ({
     id,
     name,
@@ -415,7 +385,6 @@ export default function MenuPage() {
         <div className="bg-white rounded-xl overflow-hidden shadow-sm h-full flex flex-col p-2 sm:p-3 relative">
           {isAdmin && <AdminEditButton productId={id} />}
 
-          {/* Añadir imagen si existe */}
           {image && (
             <div className="relative h-24 sm:h-28 lg:h-40 w-full mb-2 rounded-lg overflow-hidden">
               <Image src={image || "/placeholder.svg"} alt={name} fill className="object-cover" />
@@ -437,17 +406,14 @@ export default function MenuPage() {
     )
   }
 
-  // Filtrar productos por categoría
   const breakfastProducts = products.filter((product) => product.category === "breakfast")
   const brunchProducts = products.filter((product) => product.category === "brunch")
   const lunchProducts = products.filter((product) => product.category === "lunch")
   const dessertProducts = products.filter((product) => product.category === "desserts")
 
-  // Renderizar contenido específico para la categoría "brunch"
   const renderBrunchContent = () => {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Primera fila */}
         <div className="col-span-1">
           <MenuItemCard
             id="sandwich-mediterraneo"
@@ -482,7 +448,6 @@ export default function MenuPage() {
           />
         </div>
 
-        {/* Segunda fila */}
         <div className="col-span-1">
           <MenuItemCard
             id="toston-de-palta"
@@ -510,7 +475,6 @@ export default function MenuPage() {
           <CroissantHeladoCard isAdmin={isAdmin} onEdit={handleEditProduct} />
         </div>
 
-        {/* Tercera fila - Nuevos productos */}
         <div className="col-span-1">
           <TostiEspinacaCard isAdmin={isAdmin} onEdit={handleEditProduct} />
         </div>
@@ -518,7 +482,6 @@ export default function MenuPage() {
     )
   }
 
-  // Renderizar contenido para la categoría "lunch"
   const renderLunchContent = () => {
     return (
       <div className="bg-white/50 p-8 rounded-lg text-center">
@@ -527,7 +490,6 @@ export default function MenuPage() {
     )
   }
 
-  // Add this function to render the desserts content
   const renderDessertsContent = () => {
     return (
       <div className="bg-white/50 p-8 rounded-lg text-center">
@@ -536,7 +498,6 @@ export default function MenuPage() {
     )
   }
 
-  // Add this function to render the breakfast content
   const renderBreakfastContent = () => {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -559,15 +520,11 @@ export default function MenuPage() {
 
   return (
     <div className="bg-lacapke-background min-h-screen">
-      {/* Nuevo Header con el estilo de la imagen de referencia */}
       <Header />
 
-      {/* Desktop Navigation con contador de carrito */}
       <DesktopNavigation user={user} onLoginSuccess={handleLoginSuccess} cartItemCount={cartItemCount} />
 
-      {/* Main Content */}
       <main className="container-app lg:pb-10 pb-20">
-        {/* Panel de Administración (solo visible para administradores) */}
         {isAdmin && (
           <>
             <AdminPanel
@@ -594,17 +551,13 @@ export default function MenuPage() {
           </>
         )}
 
-        {/* Categories Carousel */}
         <motion.div
           className="mb-4"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-        >
-          {/* Este div está vacío pero mantiene el espaciado */}
-        </motion.div>
+        ></motion.div>
 
-        {/* Usar el componente StickyCategoryCarousel */}
         <StickyCategoryCarousel
           categories={[
             { id: "brunch", name: "Brunchear" },
@@ -616,41 +569,9 @@ export default function MenuPage() {
           ]}
           activeCategory={activeCategory}
           onCategoryChange={scrollToCategory}
-          rightIcon={
-            <motion.svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 0 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              animate={{ x: [0, 5, 0] }}
-              transition={{
-                repeat: Number.POSITIVE_INFINITY,
-                repeatType: "loop",
-                duration: 1.5,
-                ease: "easeInOut",
-              }}
-            >
-              <path
-                d="M13 17L18 12L13 7"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M6 17L11 12L6 7"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </motion.svg>
-          }
         />
 
-        {/* Sección Brunchear (ahora primero) */}
-        <div ref={brunchRef} className="mb-16 scroll-mt-24" data-category="brunch">
+        <div ref={(el) => (categoryRefs.current.brunch = el)} className="mb-16 scroll-mt-24" data-category="brunch">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("brunch")}
@@ -659,8 +580,11 @@ export default function MenuPage() {
           {renderBrunchContent()}
         </div>
 
-        {/* Sección Desayuno y Merienda (ahora segundo) */}
-        <div ref={breakfastRef} className="mb-16 scroll-mt-24" data-category="breakfast">
+        <div
+          ref={(el) => (categoryRefs.current.breakfast = el)}
+          className="mb-16 scroll-mt-24"
+          data-category="breakfast"
+        >
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("breakfast")}
@@ -669,8 +593,7 @@ export default function MenuPage() {
           {renderBreakfastContent()}
         </div>
 
-        {/* Sección Almorzar y Cenar */}
-        <div ref={lunchRef} className="mb-16 scroll-mt-24" data-category="lunch">
+        <div ref={(el) => (categoryRefs.current.lunch = el)} className="mb-16 scroll-mt-24" data-category="lunch">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("lunch")}
@@ -679,8 +602,7 @@ export default function MenuPage() {
           {renderLunchContent()}
         </div>
 
-        {/* Sección Postres */}
-        <div ref={dessertsRef} className="mb-16 scroll-mt-24" data-category="desserts">
+        <div ref={(el) => (categoryRefs.current.desserts = el)} className="mb-16 scroll-mt-24" data-category="desserts">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("desserts")}
@@ -689,8 +611,7 @@ export default function MenuPage() {
           {renderDessertsContent()}
         </div>
 
-        {/* Sección Pastelería y Panadería */}
-        <div ref={bakeryRef} className="mb-16 scroll-mt-24" data-category="bakery">
+        <div ref={(el) => (categoryRefs.current.bakery = el)} className="mb-16 scroll-mt-24" data-category="bakery">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("bakery")}
@@ -701,8 +622,7 @@ export default function MenuPage() {
           </div>
         </div>
 
-        {/* Sección Cafetería */}
-        <div ref={coffeeRef} className="mb-16 scroll-mt-24" data-category="coffee">
+        <div ref={(el) => (categoryRefs.current.coffee = el)} className="mb-16 scroll-mt-24" data-category="coffee">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("coffee")}
@@ -714,12 +634,10 @@ export default function MenuPage() {
         </div>
       </main>
 
-      {/* Bottom Navigation - Solo visible en móvil */}
       <div>
         <BottomNavigation cartItemCount={cartItemCount} />
       </div>
 
-      {/* Modal de edición de producto */}
       {showEditModal && (
         <ProductEditModal
           product={editingProduct}
@@ -732,7 +650,6 @@ export default function MenuPage() {
         />
       )}
 
-      {/* Modal de edición de categoría */}
       {showCategoryModal && (
         <CategoryEditModal
           category={editingCategory}
@@ -745,7 +662,6 @@ export default function MenuPage() {
         />
       )}
 
-      {/* Toaster para notificaciones */}
       <Toaster />
     </div>
   )
