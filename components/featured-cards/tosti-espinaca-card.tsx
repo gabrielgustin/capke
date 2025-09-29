@@ -74,15 +74,7 @@ export function TostiEspinacaCard({ isAdmin = false, onEdit }: TostiEspinacaCard
           </motion.h3>
 
           {/* Descripción del producto */}
-          <motion.p
-            className="text-lacapke-charcoal/80 text-[10px] sm:text-xs lg:text-xs line-clamp-2 mb-1"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            Sándwich en pan de masa madre, espinaca y champiñones salteados en aceite infusionado en ajo con queso
-            muzzarella.
-          </motion.p>
+          
 
           {/* Logo y precio en la parte inferior */}
           <motion.div

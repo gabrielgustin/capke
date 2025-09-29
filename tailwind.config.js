@@ -1,8 +1,12 @@
-import type { Config } from "tailwindcss"
-
 const config = {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}", "*.{js,ts,jsx,tsx,mdx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+    "*.{js,ts,jsx,tsx,mdx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -17,14 +21,19 @@ const config = {
         sans: ["var(--font-open-sans)", "sans-serif"],
       },
       colors: {
-        // Colores de La Capke
+        // Colores de TUPEDIDO (reemplazando La Capke)
         lacapke: {
-          background: "#fdf5f5", // Fondo rosa original
-          cream: "#f8f5d7",
-          mint: "#e0ebe5",
-          charcoal: "#4a4a4a",
-          accent: "#d1a054",
-          pink: "#f8d7d7",
+          background: "#f9fafb", // Gris muy claro
+          cream: "#f5f5f7", // "Amarillo" tupedido (gris claro)
+          mint: "#e5e7eb", // Gris claro
+          charcoal: "#1f2937", // Gris oscuro
+          accent: "#0A4D8F", // Azul tupedido principal
+          pink: "#f3f4f6", // Gris neutro
+        },
+        // Colores adicionales tupedido
+        tupedido: {
+          yellow: "#f5f5f7",
+          blue: "#0A4D8F",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -82,6 +91,6 @@ const config = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-} satisfies Config
+}
 
 export default config

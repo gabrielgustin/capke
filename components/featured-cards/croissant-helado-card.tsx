@@ -54,7 +54,7 @@ export function CroissantHeladoCard({ isAdmin = false, onEdit }: CroissantHelado
             transition={{ duration: 0.3 }}
           >
             <ProductImage
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/attachments/gen-images/public/croissant-con-helado-new-gyMAjojOB3VX5ONzNrvhI7qKT6LcvR.png"
+              src="/images/design-mode/croissant-con-helado-new.png"
               alt="Croissant con Helado"
               fill
               priority={true}
@@ -74,14 +74,7 @@ export function CroissantHeladoCard({ isAdmin = false, onEdit }: CroissantHelado
           </motion.h3>
 
           {/* Descripción del producto */}
-          <motion.p
-            className="text-lacapke-charcoal/80 text-[10px] sm:text-xs lg:text-xs line-clamp-2 mb-1"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            Croissant relleno de helado de crema americana, coulis de arándanos, banana y frutillas.
-          </motion.p>
+          
 
           {/* Logo y precio en la parte inferior */}
           <motion.div

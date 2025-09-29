@@ -1,11 +1,15 @@
 import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
-import { Inter, Open_Sans } from "next/font/google"
-import { AppSplashScreen } from "@/components/app-splash-screen"
+import { Inter, Open_Sans, Anton } from "next/font/google"
 
 const inter = Inter({ subsets: ["latin"] })
 const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" })
+const anton = Anton({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-anton",
+})
 
 export const metadata: Metadata = {
   title: "La Capke",
@@ -19,10 +23,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className={`${openSans.variable}`}>
-      <body className="font-sans bg-lacapke-background min-h-screen">
-        <AppSplashScreen>{children}</AppSplashScreen>
-      </body>
+    <html lang="es" className={`${openSans.variable} ${anton.variable}`}>
+      <body className="font-sans bg-lacapke-background min-h-screen">{children}</body>
     </html>
   )
 }

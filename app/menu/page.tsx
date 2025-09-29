@@ -1,22 +1,16 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect, useRef } from "react"
-import { Search, X, Home, ShoppingBag, LogOut, PlusCircle, Edit, RefreshCw } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Edit, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { FoodCategory } from "@/components/food-category"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { MenuItemCard } from "@/components/menu-item-card"
-import { LoginForm } from "@/components/login-form"
 import { AdminPanel } from "@/components/admin-panel"
 import { ProductEditModal } from "@/components/product-edit-modal"
+import { Header } from "@/components/header"
 import Image from "next/image"
-import { TicketIcon } from "@/components/icons"
 import Link from "next/link"
-import { getAuthState, logout, type User } from "@/lib/auth"
+import { getAuthState, type User } from "@/lib/auth"
 import {
   getProducts,
   updateProduct,
@@ -41,11 +35,7 @@ import { useSearchParams } from "next/navigation"
 import { RefreshDataButton } from "@/components/refresh-data-button"
 
 // Importar motion y las utilidades de animación
-import { motion, AnimatePresence } from "framer-motion"
-import { categoryAnimation, mobileMenuAnimation, menuItemAnimation } from "@/lib/animation-utils"
-
-// Importar el componente
-import { ScrollToTopButton } from "@/components/scroll-to-top-button"
+import { motion } from "framer-motion"
 
 // Importar el nuevo componente
 import { StickyCategoryCarousel } from "@/components/sticky-category-carousel"
@@ -67,47 +57,8 @@ interface CartItem {
   variant?: string
 }
 
-// Find the HamburgerIcon component and replace it with this corrected version:
-
-const HamburgerIcon = (props: React.SVGProps<SVGSVGElement>) => {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M4 6C4 5.44772 4.44772 5 5 5H19C19.5523 5 20 5.44772 20 6C20 6.55228 19.5523 7 19 7H5C4.44772 7 4 6.55228 4 6Z"
-        fill="currentColor"
-      />
-      <path
-        d="M4 12C4 11.4477 4.44772 11 5 11H19C19.5523 11 20 11.4477 20 12C20 12.5523 19.5523 13 19 13H5C4.44772 13 4 12.5523 4 12Z"
-        fill="currentColor"
-      />
-      <path
-        d="M5 17C4.44772 17 4 17.4477 4 18C4 18.5523 4.44772 19 5 19H19C19.5523 19 20 18.5523 20 18C20 17.4477 19.5523 17 19 17H5Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-// Modificar el componente FoodCategory para usar animaciones
-function AnimatedFoodCategory({ title, iconType, isActive, onClick }) {
-  return (
-    <motion.div
-      variants={categoryAnimation}
-      initial="inactive"
-      animate={isActive ? "active" : "inactive"}
-      whileTap={{ scale: 0.95 }}
-      onClick={onClick}
-      className="cursor-pointer"
-    >
-      <FoodCategory title={title} iconType={iconType} />
-    </motion.div>
-  )
-}
-
 export default function MenuPage() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
-  const [showLoginForm, setShowLoginForm] = useState(false)
   const [products, setProducts] = useState<Product[]>([])
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -142,12 +93,6 @@ export default function MenuPage() {
     // Obtener productos predeterminados
     const defaultProducts = resetProducts()
     setProducts(defaultProducts)
-
-    toast({
-      title: "Productos actualizados",
-      description: "Se han restablecido todos los productos a la versión más reciente",
-      duration: 3000,
-    })
 
     setTimeout(() => {
       setIsResetting(false)
@@ -235,19 +180,10 @@ export default function MenuPage() {
     }
   }
 
-  // Función para manejar el cierre de sesión
-  const handleLogout = () => {
-    logout()
-    setUser(null)
-    setIsMenuOpen(false)
-  }
-
   // Función para manejar el inicio de sesión exitoso
   const handleLoginSuccess = () => {
     const authUser = getAuthState()
     setUser(authUser)
-    setShowLoginForm(false)
-    setIsMenuOpen(false)
   }
 
   // Función para editar un producto
@@ -376,16 +312,12 @@ export default function MenuPage() {
     })
   }
 
-  // Modificar la función scrollToCategory en app/menu/page.tsx
-  // Buscar esta función y reemplazarla con la siguiente versión:
-
   // Función para hacer scroll a la categoría seleccionada
   const scrollToCategory = (category: ProductCategory) => {
     setActiveCategory(category)
 
-    // Solo hacer scroll si la página ya ha sido cargada completamente
-    // y el usuario ha interactuado con la página
-    if (document.readyState === "complete" && performance.now() > 5000) {
+    // Solo hacer scroll si es una interacción manual del usuario
+    if (document.activeElement && document.activeElement.tagName === "BUTTON") {
       let ref = null
       switch (category) {
         case "breakfast":
@@ -409,7 +341,6 @@ export default function MenuPage() {
       }
 
       if (ref && ref.current) {
-        // Scroll con animación suave
         ref.current.scrollIntoView({
           behavior: "smooth",
           block: "start",
@@ -481,7 +412,7 @@ export default function MenuPage() {
   }) => {
     return (
       <Link href={`/product/${id}`} className="block h-full">
-        <div className="bg-[#f8f5d7] rounded-xl overflow-hidden shadow-sm h-full flex flex-col p-2 sm:p-3 relative">
+        <div className="bg-white rounded-xl overflow-hidden shadow-sm h-full flex flex-col p-2 sm:p-3 relative">
           {isAdmin && <AdminEditButton productId={id} />}
 
           {/* Añadir imagen si existe */}
@@ -496,7 +427,6 @@ export default function MenuPage() {
               <h3 className="font-bold text-lacapke-charcoal text-xs sm:text-sm font-open-sans">{name}</h3>
               {isNew && <NewItemBadge className="ml-1" />}
             </div>
-            <p className="text-lacapke-charcoal/80 text-[9px] sm:text-[10px] line-clamp-2 mt-0.5">{description}</p>
           </div>
           <div className="flex justify-between items-center w-full mt-1 sm:mt-2">
             <div className="relative">{isVegetarian && <VegetarianBadge className="h-4 w-4 sm:h-5 sm:w-5" />}</div>
@@ -629,244 +559,14 @@ export default function MenuPage() {
 
   return (
     <div className="bg-lacapke-background min-h-screen">
+      {/* Nuevo Header con el estilo de la imagen de referencia */}
+      <Header />
+
       {/* Desktop Navigation con contador de carrito */}
       <DesktopNavigation user={user} onLoginSuccess={handleLoginSuccess} cartItemCount={cartItemCount} />
 
-      {/* Mobile Header */}
-      <header className="lg:hidden px-4 pt-6 pb-2">
-        <div className="flex justify-between items-center mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`h-14 w-14 z-50 -ml-2 text-lacapke-charcoal ${isMenuOpen ? "opacity-0" : "opacity-100"} transition-opacity`}
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            <HamburgerIcon className="h-10 w-10" />
-          </Button>
-
-          <div className="relative h-20 w-64">
-            <Image src="/finall.png" alt="La Capke" fill className="object-contain" priority />
-          </div>
-
-          <div className="w-8">{/* Espacio vacío para equilibrar el diseño */}</div>
-        </div>
-
-        {/* Promo Section */}
-        <div className="flex flex-col items-center mb-4">
-          <div className="border border-lacapke-charcoal/20 rounded-full px-4 py-2 flex items-center gap-3 bg-white">
-            <div className="flex items-center gap-2">
-              <TicketIcon className="h-5 w-5 text-lacapke-charcoal" />
-              <div className="text-xs">
-                <span className="font-medium text-lacapke-charcoal">Lunes a Jueves</span>
-                <br />
-                <span className="text-lacapke-charcoal/70 text-[10px]">(excepto feriados)</span>
-              </div>
-            </div>
-            <div className="h-8 w-px bg-lacapke-charcoal/20"></div>
-            <div className="text-xs">
-              <span className="font-bold text-sm text-lacapke-charcoal">EFECTIVO 10%</span>
-              <br />
-              <span className="text-lacapke-charcoal/70">DE DESCUENTO</span>
-            </div>
-          </div>
-
-          {/* Reemplazar el uso de LeafIcon en la sección de promo */}
-          <div className="flex gap-4 mt-2">
-            <div className="flex items-center gap-1 text-xs text-lacapke-charcoal/80">
-              <VegetarianBadge className="h-4 w-4" />
-              <span>VEGETARIANO</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-lacapke-charcoal/80">
-              <VegetarianBadge className="h-4 w-4" />
-              <VegetarianBadge className="h-4 w-4" />
-              <span>VEGANO</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Slide-out Menu */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              className="fixed inset-0 bg-black/50 z-50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMenuOpen(false)}
-            />
-          )}
-        </AnimatePresence>
-
-        <motion.div
-          className="fixed top-0 left-0 bottom-0 w-64 bg-white z-50 shadow-xl"
-          variants={mobileMenuAnimation}
-          initial="closed"
-          animate={isMenuOpen ? "open" : "closed"}
-        >
-          {/* Contenido del menú móvil */}
-          <div className="relative">
-            <motion.button
-              variants={menuItemAnimation}
-              className="absolute right-2 top-2 h-8 w-8 text-lacapke-charcoal z-20"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </motion.button>
-          </div>
-
-          <motion.div className="p-6 pt-12 border-b border-lacapke-charcoal/10" variants={menuItemAnimation}>
-            {user ? (
-              <div className="flex items-center gap-3">
-                <Avatar className="h-14 w-14 border-2 border-lacapke-cream">
-                  <AvatarImage src="/la-capke-logo.png" alt="Admin" />
-                  <AvatarFallback>LC</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-medium text-lacapke-charcoal text-lg">{user.username}</h3>
-                  <p className="text-sm text-lacapke-charcoal/70">Administrador</p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center">
-                <Avatar className="h-14 w-14 border-2 border-lacapke-cream mb-2">
-                  <AvatarImage src="/la-capke-logo.png" alt="La Capke" />
-                  <AvatarFallback>LC</AvatarFallback>
-                </Avatar>
-                <Button
-                  className="w-full bg-[#f8e1e1] hover:bg-[#f5d4d4] text-lacapke-charcoal"
-                  onClick={() => setShowLoginForm(true)}
-                >
-                  Iniciar Sesión
-                </Button>
-              </div>
-            )}
-          </motion.div>
-
-          <motion.nav className="p-4">
-            <motion.ul className="space-y-2">
-              <motion.li variants={menuItemAnimation}>
-                <Link href="/" className="block">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-lacapke-charcoal hover:bg-lacapke-cream/50"
-                  >
-                    <Home className="mr-3 h-5 w-5" />
-                    Home
-                  </Button>
-                </Link>
-              </motion.li>
-              <li>
-                <Link href="/cart" className="block">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-lacapke-charcoal hover:bg-lacapke-cream/50"
-                  >
-                    <div className="relative mr-3">
-                      <ShoppingBag className="h-5 w-5" />
-                      {cartItemCount > 0 && (
-                        <span className="absolute -top-2 -right-2 bg-[#f8e1e1] text-lacapke-charcoal text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
-                          {cartItemCount > 9 ? "9+" : cartItemCount}
-                        </span>
-                      )}
-                    </div>
-                    Mi Pedido
-                  </Button>
-                </Link>
-              </li>
-              {isAdmin && (
-                <li>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-lacapke-charcoal hover:bg-lacapke-cream/50"
-                  >
-                    <PlusCircle className="mr-3 h-5 w-5" />
-                    Administrar Productos
-                  </Button>
-                </li>
-              )}
-              {user && (
-                <li className="pt-4 mt-4 border-t border-lacapke-charcoal/10">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-red-500 hover:bg-red-50"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="mr-3 h-5 w-5" />
-                    Logout
-                  </Button>
-                </li>
-              )}
-            </motion.ul>
-          </motion.nav>
-        </motion.div>
-
-        {/* Modal de inicio de sesión */}
-        {showLoginForm && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="relative w-full max-w-md">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-2 h-8 w-8 text-lacapke-charcoal z-20 bg-white rounded-full"
-                onClick={() => setShowLoginForm(false)}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-              <LoginForm onLoginSuccess={handleLoginSuccess} />
-            </div>
-          </div>
-        )}
-
-        {/* Modal de edición de producto */}
-        {showEditModal && (
-          <ProductEditModal
-            product={editingProduct}
-            onClose={() => {
-              setShowEditModal(false)
-              setEditingProduct(null)
-            }}
-            onSave={handleSaveProduct}
-            onDelete={handleDeleteProduct}
-          />
-        )}
-      </header>
-
-      {/* Desktop Promo Section */}
-      <div className="hidden lg:flex justify-center py-4">
-        <div className="container-app">
-          <div className="border border-lacapke-charcoal/20 rounded-full px-6 py-3 flex items-center gap-6 bg-white max-w-3xl mx-auto">
-            <div className="flex items-center gap-3">
-              <TicketIcon className="h-6 w-6 text-lacapke-charcoal" />
-              <div className="text-sm">
-                <span className="font-medium text-lacapke-charcoal">Lunes a Jueves</span>
-                <br />
-                <span className="text-lacapke-charcoal/70 text-xs">(except feriados)</span>
-              </div>
-            </div>
-            <div className="h-10 w-px bg-lacapke-charcoal/20"></div>
-            <div className="text-sm">
-              <span className="font-bold text-lg text-lacapke-charcoal">EFECTIVO 10%</span>
-              <br />
-              <span className="text-lacapke-charcoal/70">DE DESCUENTO</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="container-app mb-8">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Input placeholder="Buscar.." className="bg-white border-lacapke-charcoal/20 shadow-sm" />
-          </div>
-          <Button variant="outline" size="icon" className="bg-white shadow-sm border-lacapke-charcoal/20">
-            <Search className="h-5 w-5 text-lacapke-charcoal" />
-          </Button>
-        </div>
-      </div>
-
       {/* Main Content */}
-      <main className="container-app pb-20 lg:pb-10">
+      <main className="container-app lg:pb-10 pb-20">
         {/* Panel de Administración (solo visible para administradores) */}
         {isAdmin && (
           <>
@@ -950,7 +650,7 @@ export default function MenuPage() {
         />
 
         {/* Sección Brunchear (ahora primero) */}
-        <div ref={brunchRef} className="mb-16 scroll-mt-24">
+        <div ref={brunchRef} className="mb-16 scroll-mt-24" data-category="brunch">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("brunch")}
@@ -960,7 +660,7 @@ export default function MenuPage() {
         </div>
 
         {/* Sección Desayuno y Merienda (ahora segundo) */}
-        <div ref={breakfastRef} className="mb-16 scroll-mt-24">
+        <div ref={breakfastRef} className="mb-16 scroll-mt-24" data-category="breakfast">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("breakfast")}
@@ -970,7 +670,7 @@ export default function MenuPage() {
         </div>
 
         {/* Sección Almorzar y Cenar */}
-        <div ref={lunchRef} className="mb-16 scroll-mt-24">
+        <div ref={lunchRef} className="mb-16 scroll-mt-24" data-category="lunch">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("lunch")}
@@ -980,7 +680,7 @@ export default function MenuPage() {
         </div>
 
         {/* Sección Postres */}
-        <div ref={dessertsRef} className="mb-16 scroll-mt-24">
+        <div ref={dessertsRef} className="mb-16 scroll-mt-24" data-category="desserts">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("desserts")}
@@ -990,7 +690,7 @@ export default function MenuPage() {
         </div>
 
         {/* Sección Pastelería y Panadería */}
-        <div ref={bakeryRef} className="mb-16 scroll-mt-24">
+        <div ref={bakeryRef} className="mb-16 scroll-mt-24" data-category="bakery">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("bakery")}
@@ -1002,7 +702,7 @@ export default function MenuPage() {
         </div>
 
         {/* Sección Cafetería */}
-        <div ref={coffeeRef} className="mb-16 scroll-mt-24">
+        <div ref={coffeeRef} className="mb-16 scroll-mt-24" data-category="coffee">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("coffee")}
@@ -1044,9 +744,6 @@ export default function MenuPage() {
           onDelete={handleDeleteCategory}
         />
       )}
-
-      {/* Botón para volver arriba */}
-      <ScrollToTopButton />
 
       {/* Toaster para notificaciones */}
       <Toaster />

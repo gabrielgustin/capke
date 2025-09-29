@@ -4,65 +4,65 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 249 250 251; /* #f9fafb */
+    --foreground: 31 41 55; /* #1f2937 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 255 255 255; /* #ffffff */
+    --card-foreground: 31 41 55; /* #1f2937 */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 255 255 255; /* #ffffff */
+    --popover-foreground: 31 41 55; /* #1f2937 */
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 10 77 143; /* #0A4D8F */
+    --primary-foreground: 255 255 255; /* #ffffff */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 243 244 246; /* #f3f4f6 */
+    --secondary-foreground: 31 41 55; /* #1f2937 */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 243 244 246; /* #f3f4f6 */
+    --muted-foreground: 107 114 128; /* #6b7280 */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 10 77 143; /* #0A4D8F */
+    --accent-foreground: 255 255 255; /* #ffffff */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 239 68 68; /* #ef4444 */
+    --destructive-foreground: 255 255 255; /* #ffffff */
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 229 231 235; /* #e5e7eb */
+    --input: 229 231 235; /* #e5e7eb */
+    --ring: 10 77 143; /* #0A4D8F */
 
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 31 41 55; /* #1f2937 */
+    --foreground: 249 250 251; /* #f9fafb */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 31 41 55; /* #1f2937 */
+    --card-foreground: 249 250 251; /* #f9fafb */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 31 41 55; /* #1f2937 */
+    --popover-foreground: 249 250 251; /* #f9fafb */
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 10 77 143; /* #0A4D8F */
+    --primary-foreground: 255 255 255; /* #ffffff */
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 55 65 81; /* #374151 */
+    --secondary-foreground: 249 250 251; /* #f9fafb */
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 55 65 81; /* #374151 */
+    --muted-foreground: 156 163 175; /* #9ca3af */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 10 77 143; /* #0A4D8F */
+    --accent-foreground: 255 255 255; /* #ffffff */
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 239 68 68; /* #ef4444 */
+    --destructive-foreground: 255 255 255; /* #ffffff */
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 55 65 81; /* #374151 */
+    --input: 55 65 81; /* #374151 */
+    --ring: 10 77 143; /* #0A4D8F */
   }
 }
 
@@ -77,6 +77,12 @@
   /* Estilos para fuentes personalizadas */
   .font-open-sans {
     font-family: var(--font-open-sans), sans-serif;
+  }
+
+  /* Clase para texto más pequeño */
+  .text-smaller {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.25rem; /* 20px */
   }
 }
 
@@ -122,8 +128,6 @@
     }
   }
 }
-
-/* Añadir estos estilos al final del archivo para el carrusel y la animación */
 
 /* Estilos para el carrusel de categorías */
 .hide-scrollbar::-webkit-scrollbar {
@@ -208,7 +212,7 @@
   background-color: rgba(74, 74, 74, 0.4);
 }
 
-/* Añadir estos estilos específicos para el carrusel de categorías */
+/* Estilos específicos para el carrusel de categorías */
 .category-button {
   width: 80px; /* Ancho fijo para todos los botones */
   flex-shrink: 0;

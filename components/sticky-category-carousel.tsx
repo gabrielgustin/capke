@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useRef, useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { FoodCategory } from "@/components/food-category"
@@ -30,6 +29,14 @@ export function StickyCategoryCarousel({
   const [originalTop, setOriginalTop] = useState(0)
   const [hasOverflow, setHasOverflow] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [categoryRefs, setCategoryRefs] = useState<Record<ProductCategory, HTMLElement | null>>({
+    breakfast: null,
+    brunch: null,
+    lunch: null,
+    desserts: null,
+    bakery: null,
+    coffee: null,
+  })
 
   const checkForOverflow = () => {
     if (carouselRef.current) {
@@ -108,6 +115,53 @@ export function StickyCategoryCarousel({
     }
   }, [])
 
+  // Efecto para detectar la categoría activa basada en el scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!isInitialized) return
+
+      const scrollPosition = window.scrollY + window.innerHeight / 3
+
+      // Buscar todas las secciones de categorías en el DOM
+      const sections = [
+        { id: "brunch" as ProductCategory, element: document.querySelector('[data-category="brunch"]') },
+        { id: "breakfast" as ProductCategory, element: document.querySelector('[data-category="breakfast"]') },
+        { id: "lunch" as ProductCategory, element: document.querySelector('[data-category="lunch"]') },
+        { id: "desserts" as ProductCategory, element: document.querySelector('[data-category="desserts"]') },
+        { id: "bakery" as ProductCategory, element: document.querySelector('[data-category="bakery"]') },
+        { id: "coffee" as ProductCategory, element: document.querySelector('[data-category="coffee"]') },
+      ]
+
+      let currentCategory: ProductCategory = "brunch"
+
+      for (const section of sections) {
+        if (section.element) {
+          const rect = section.element.getBoundingClientRect()
+          const elementTop = rect.top + window.scrollY
+
+          if (scrollPosition >= elementTop - 100) {
+            currentCategory = section.id
+          }
+        }
+      }
+
+      if (currentCategory !== activeCategory) {
+        onCategoryChange(currentCategory)
+      }
+    }
+
+    // Solo activar después de la inicialización
+    if (isInitialized) {
+      window.addEventListener("scroll", handleScroll, { passive: true })
+      // Llamar una vez para establecer la categoría inicial
+      handleScroll()
+    }
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+    }
+  }, [isInitialized, activeCategory, onCategoryChange])
+
   return (
     <>
       {/* Contenedor principal que será reemplazado por el espaciador cuando esté fijo */}
@@ -123,17 +177,15 @@ export function StickyCategoryCarousel({
             zIndex: 30,
           }}
         >
-          <div className="container-app py-1">
-            <div className="text-center pt-1 mb-2">
-              <h2 className="text-lg font-bold text-lacapke-charcoal">Categorías</h2>
-            </div>
+          <div className="container-app py-1 pb-0 pt-0">
+            {/* Updated header */}
 
             <div
               className="overflow-x-auto pb-2 hide-scrollbar carousel-container"
               id="categories-carousel"
               ref={carouselRef}
             >
-              <div className="flex space-x-3 min-w-max px-2">
+              <div className="flex space-x-3 min-w-max px-0">
                 {categories.map((category) => (
                   <motion.button
                     key={category.id}

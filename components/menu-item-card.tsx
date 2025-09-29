@@ -115,14 +115,7 @@ export function MenuItemCard({
           </motion.h3>
 
           {/* Descripción del producto */}
-          <motion.p
-            className="text-lacapke-charcoal/80 text-[10px] sm:text-xs lg:text-xs line-clamp-2 mb-1"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            {description}
-          </motion.p>
+          
 
           {/* Variantes (si existen) */}
           {variants.length > 0 && (

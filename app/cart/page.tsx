@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Trash2, ArrowLeft, Minus, Plus, ShoppingBag, AlertCircle, Check, X } from "lucide-react"
+import { Trash2, ArrowLeft, Minus, Plus, ShoppingBag, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { DesktopNavigation } from "@/components/desktop-navigation"
@@ -11,7 +11,6 @@ import { getAuthState, type User } from "@/lib/auth"
 import { LeafIcon } from "@/components/icons"
 import { getProducts } from "@/lib/products"
 import { Toaster } from "@/components/ui/toaster"
-import { toast } from "@/components/ui/use-toast"
 
 // Importar motion y las utilidades de animación
 import { motion, AnimatePresence } from "framer-motion"
@@ -31,12 +30,6 @@ export default function CartPage() {
   const router = useRouter()
   const [cart, setCart] = useState<CartItem[]>([])
   const [totalPrice, setTotalPrice] = useState(0)
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
-  const [itemToRemove, setItemToRemove] = useState<{
-    id: string
-    variant?: string
-    action: "decrease" | "delete"
-  } | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [products, setProducts] = useState<any[]>([])
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false)
@@ -76,19 +69,14 @@ export default function CartPage() {
 
   // Función para actualizar la cantidad de un producto
   const updateQuantity = (id: string, variant: string | undefined, newQuantity: number) => {
-    // Si la nueva cantidad es 0, mostrar diálogo de confirmación
-    if (newQuantity === 0) {
-      setItemToRemove({ id, variant, action: "decrease" })
-      setShowConfirmDialog(true)
-      return
-    }
-
-    const updatedCart = cart.map((item) => {
-      if (item.id === id && item.variant === variant) {
-        return { ...item, quantity: newQuantity }
-      }
-      return item
-    })
+    const updatedCart = cart
+      .map((item) => {
+        if (item.id === id && item.variant === variant) {
+          return { ...item, quantity: newQuantity }
+        }
+        return item
+      })
+      .filter((item) => item.quantity > 0)
 
     setCart(updatedCart)
     localStorage.setItem("cart", JSON.stringify(updatedCart))
@@ -96,37 +84,28 @@ export default function CartPage() {
 
   // Función para eliminar un producto del carrito
   const removeItem = (id: string, variant?: string) => {
-    // Mostrar diálogo de confirmación
-    setItemToRemove({ id, variant, action: "delete" })
-    setShowConfirmDialog(true)
+    const updatedCart = cart.filter((item) => !(item.id === id && item.variant === variant))
+    setCart(updatedCart)
+    localStorage.setItem("cart", JSON.stringify(updatedCart))
   }
 
-  // Función para confirmar la eliminación
-  const confirmRemove = () => {
-    if (!itemToRemove) return
-
-    if (itemToRemove.action === "delete" || itemToRemove.action === "decrease") {
-      const updatedCart = cart.filter((item) => !(item.id === itemToRemove.id && item.variant === itemToRemove.variant))
-      setCart(updatedCart)
-      localStorage.setItem("cart", JSON.stringify(updatedCart))
-
-      // Mostrar toast de confirmación
-      toast({
-        title: "Producto eliminado",
-        description: "El producto ha sido eliminado de tu pedido",
-        duration: 3000,
-      })
-    }
-
-    // Cerrar el diálogo
-    setShowConfirmDialog(false)
-    setItemToRemove(null)
+  // Función para manejar el inicio de sesión exitoso
+  const handleLoginSuccess = () => {
+    const authUser = getAuthState()
+    setUser(authUser)
   }
 
-  // Función para cancelar la eliminación
-  const cancelRemove = () => {
-    setShowConfirmDialog(false)
-    setItemToRemove(null)
+  // Función para obtener información adicional del producto
+  const getProductInfo = (id: string) => {
+    return products.find((p) => p.id === id) || null
+  }
+
+  // Función para formatear el precio
+  const formatPrice = (price: number) => {
+    return price.toLocaleString("es-AR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
   }
 
   // Función para finalizar el pedido
@@ -157,36 +136,6 @@ export default function CartPage() {
 
     // Redirigir al menú
     router.push("/menu")
-  }
-
-  // Encontrar el nombre del producto a eliminar para el diálogo
-  const getItemName = () => {
-    if (!itemToRemove) return "este producto"
-
-    const item = cart.find((item) => item.id === itemToRemove.id && item.variant === itemToRemove.variant)
-
-    if (!item) return "este producto"
-
-    return `${item.name}${item.variant ? ` (${item.variant})` : ""}`
-  }
-
-  // Función para manejar el inicio de sesión exitoso
-  const handleLoginSuccess = () => {
-    const authUser = getAuthState()
-    setUser(authUser)
-  }
-
-  // Función para obtener información adicional del producto
-  const getProductInfo = (id: string) => {
-    return products.find((p) => p.id === id) || null
-  }
-
-  // Función para formatear el precio
-  const formatPrice = (price: number) => {
-    return price.toLocaleString("es-AR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
   }
 
   return (
@@ -221,7 +170,7 @@ export default function CartPage() {
                 <ShoppingBag className="h-16 w-16 text-lacapke-charcoal/30 mb-4" />
                 <p className="text-lacapke-charcoal/70 text-lg">Tu carrito está vacío</p>
                 <Button
-                  className="mt-6 bg-[#f8e1e1] hover:bg-[#f5d4d4] text-lacapke-charcoal rounded-2xl"
+                  className="mt-6 bg-[#0A4D8F] hover:bg-[#083d73] text-white rounded-2xl"
                   onClick={() => router.push("/menu")}
                 >
                   Ver menú
@@ -276,7 +225,7 @@ export default function CartPage() {
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  className="h-6 w-6 sm:h-8 sm:w-8 rounded-full border-0 bg-[#f8e1e1] text-lacapke-charcoal hover:bg-[#f5d4d4]"
+                                  className="h-6 w-6 sm:h-8 sm:w-8 rounded-full border-0 bg-[#f5f5f7] text-lacapke-charcoal hover:bg-[#e5e7eb]"
                                   onClick={() => updateQuantity(item.id, item.variant, item.quantity - 1)}
                                 >
                                   <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -287,7 +236,7 @@ export default function CartPage() {
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  className="h-6 w-6 sm:h-8 sm:w-8 rounded-full border-0 bg-[#e0f0e9] text-lacapke-charcoal hover:bg-[#d3e8df]"
+                                  className="h-6 w-6 sm:h-8 sm:w-8 rounded-full border-0 bg-[#f5f5f7] text-lacapke-charcoal hover:bg-[#e5e7eb]"
                                   onClick={() => updateQuantity(item.id, item.variant, item.quantity + 1)}
                                 >
                                   <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -343,7 +292,7 @@ export default function CartPage() {
 
                 {/* Botón de finalizar pedido */}
                 <motion.button
-                  className="w-full bg-[#f8e1e1] hover:bg-[#f5d4d4] text-lacapke-charcoal py-4 text-lg font-medium rounded-2xl"
+                  className="w-full bg-[#0A4D8F] hover:bg-[#083d73] text-white py-4 text-lg font-medium rounded-2xl"
                   onClick={checkout}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -357,46 +306,6 @@ export default function CartPage() {
             )}
           </div>
         </main>
-
-        {/* Diálogo de confirmación para eliminar producto */}
-        <AnimatePresence>
-          {showConfirmDialog && (
-            <motion.div
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                className="bg-white rounded-2xl p-6 max-w-xs w-full shadow-lg"
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              >
-                <div className="flex items-center mb-4">
-                  <AlertCircle className="h-6 w-6 text-red-500 mr-2" />
-                  <h3 className="text-lg font-bold text-lacapke-charcoal">Confirmar eliminación</h3>
-                </div>
-                <p className="text-lacapke-charcoal mb-6">
-                  ¿Estás seguro de que deseas eliminar {getItemName()} de tu pedido?
-                </p>
-                <div className="flex justify-end gap-3">
-                  <Button
-                    variant="outline"
-                    className="border-lacapke-charcoal/20 text-lacapke-charcoal rounded-xl"
-                    onClick={cancelRemove}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button className="bg-red-500 hover:bg-red-600 text-white rounded-xl" onClick={confirmRemove}>
-                    Eliminar
-                  </Button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Modal de confirmación de pedido */}
         <AnimatePresence>
@@ -424,12 +333,7 @@ export default function CartPage() {
                   </Button>
                 </div>
 
-                <div className="bg-green-50 p-4 rounded-xl mb-4">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm text-green-700">Número de pedido:</span>
-                    <span className="font-bold text-green-700">{orderDetails.orderNumber}</span>
-                  </div>
-                </div>
+                
 
                 <h4 className="font-bold text-lacapke-charcoal mb-2">Detalle del pedido:</h4>
                 <div className="border-t border-lacapke-charcoal/10 pt-2 mb-4">
@@ -452,12 +356,10 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                <div className="bg-[#f8f5d7] p-4 rounded-xl mb-6">
-                  <p className="text-sm text-lacapke-charcoal">Tu pedido ha sido recibido y está siendo preparado.</p>
-                </div>
+                
 
                 <Button
-                  className="w-full bg-[#f8e1e1] hover:bg-[#f5d4d4] text-lacapke-charcoal py-4 font-medium rounded-2xl"
+                  className="w-full bg-[#0A4D8F] hover:bg-[#083d73] text-white py-4 font-medium rounded-2xl"
                   onClick={closeOrderConfirmation}
                 >
                   Volver al menú

@@ -1,19 +1,19 @@
 export const theme = {
   colors: {
-    // Colores extraídos de las imágenes
+    // Colores TUPEDIDO (reemplazando La Capke)
     primary: {
-      background: "#fdf5f5", // Fondo rosa original
-      cream: "#f8f5d7", // Fondo amarillo claro/crema del Querido Bowl
-      mint: "#e0ebe5", // Fondo verde menta de la Milanesa
-      charcoal: "#4a4a4a", // Color de texto oscuro
-      accent: "#d1a054", // Color dorado/miel del bowl
-      pink: "#f8d7d7", // Tono rosado sutil
+      background: "#f9fafb", // Gris muy claro
+      cream: "#f5f5f7", // "Amarillo" tupedido
+      mint: "#e5e7eb", // Gris claro
+      charcoal: "#1f2937", // Gris oscuro
+      accent: "#0A4D8F", // Azul tupedido
+      pink: "#f3f4f6", // Gris neutro
     },
-    // Colores de estado
+    // Colores de estado actualizados
     state: {
-      success: "#6a994e",
-      warning: "#bc6c25",
-      error: "#bc4749",
+      success: "#10b981", // Verde moderno
+      warning: "#f59e0b", // Amarillo/naranja moderno
+      error: "#ef4444", // Rojo moderno
     },
   },
 }

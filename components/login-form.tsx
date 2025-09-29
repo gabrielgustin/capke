@@ -86,11 +86,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
             </div>
           )}
 
-          <Button
-            type="submit"
-            className="w-full bg-[#f8e1e1] hover:bg-[#f5d4d4] text-lacapke-charcoal"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full bg-[#0A4D8F] hover:bg-[#083d73] text-white" disabled={isLoading}>
             {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </Button>
         </form>
