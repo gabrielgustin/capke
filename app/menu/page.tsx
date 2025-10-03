@@ -29,11 +29,12 @@ import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { useSearchParams } from "next/navigation"
 import { RefreshDataButton } from "@/components/refresh-data-button"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { StickyCategoryCarousel } from "@/components/sticky-category-carousel"
 import { CategoryEditModal, type Category } from "@/components/category-edit-modal"
 import { CroissantHeladoCard } from "@/components/featured-cards/croissant-helado-card"
 import { TostiEspinacaCard } from "@/components/featured-cards/tosti-espinaca-card"
+import { useRouter } from "next/navigation"
 
 interface CartItem {
   id: string
@@ -57,19 +58,14 @@ export default function MenuPage() {
   const [showCategoryModal, setShowCategoryModal] = useState(false)
   const searchParams = useSearchParams()
   const editProductId = searchParams.get("edit")
-
-  // Referencias para las secciones de categorías
-  const categoryRefs = useRef<Record<ProductCategory, HTMLDivElement | null>>({
-    breakfast: null,
-    brunch: null,
-    lunch: null,
-    desserts: null,
-    bakery: null,
-    coffee: null,
-  })
-
-  // Bandera para evitar conflictos entre scroll manual y programático
-  const isScrollingProgrammatically = useRef(false)
+  const breakfastRef = useRef<HTMLDivElement>(null)
+  const brunchRef = useRef<HTMLDivElement>(null)
+  const lunchRef = useRef<HTMLDivElement>(null)
+  const dessertsRef = useRef<HTMLDivElement>(null)
+  const bakeryRef = useRef<HTMLDivElement>(null)
+  const coffeeRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
 
   const forceResetProducts = () => {
     setIsResetting(true)
@@ -140,46 +136,13 @@ export default function MenuPage() {
     })
   }, [])
 
-  // Detección automática de la categoría visible durante el scroll
   useEffect(() => {
-    const detectCategoryInView = () => {
-      if (isScrollingProgrammatically.current) return
-
-      const scrollPosition = window.scrollY + 200 // Offset para mejor detección
-
-      const categories: ProductCategory[] = ["brunch", "breakfast", "lunch", "desserts", "bakery", "coffee"]
-
-      for (let i = categories.length - 1; i >= 0; i--) {
-        const category = categories[i]
-        const element = categoryRefs.current[category]
-
-        if (element) {
-          const rect = element.getBoundingClientRect()
-          const elementTop = rect.top + window.scrollY
-
-          if (scrollPosition >= elementTop - 100) {
-            if (activeCategory !== category) {
-              setActiveCategory(category)
-            }
-            break
-          }
-        }
-      }
+    const shouldShowModal = localStorage.getItem("showConfirmationModal")
+    if (shouldShowModal === "true") {
+      setShowConfirmationModal(true)
+      localStorage.removeItem("showConfirmationModal")
     }
-
-    const handleScroll = () => {
-      requestAnimationFrame(detectCategoryInView)
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-
-    // Detectar categoría inicial
-    setTimeout(detectCategoryInView, 300)
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll)
-    }
-  }, [activeCategory])
+  }, [])
 
   const scrollLeft = () => {
     if (carouselRef.current) {
@@ -306,20 +269,36 @@ export default function MenuPage() {
 
   const scrollToCategory = (category: ProductCategory) => {
     setActiveCategory(category)
-    isScrollingProgrammatically.current = true
 
-    const element = categoryRefs.current[category]
+    if (document.activeElement && document.activeElement.tagName === "BUTTON") {
+      let ref = null
+      switch (category) {
+        case "breakfast":
+          ref = breakfastRef
+          break
+        case "brunch":
+          ref = brunchRef
+          break
+        case "lunch":
+          ref = lunchRef
+          break
+        case "desserts":
+          ref = dessertsRef
+          break
+        case "bakery":
+          ref = bakeryRef
+          break
+        case "coffee":
+          ref = coffeeRef
+          break
+      }
 
-    if (element) {
-      const yOffset = -120
-      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset
-
-      window.scrollTo({ top: y, behavior: "smooth" })
-
-      // Resetear la bandera después de que termine el scroll
-      setTimeout(() => {
-        isScrollingProgrammatically.current = false
-      }, 1000)
+      if (ref && ref.current) {
+        ref.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        })
+      }
     }
   }
 
@@ -518,6 +497,15 @@ export default function MenuPage() {
     )
   }
 
+  const handleContinueShopping = () => {
+    setShowConfirmationModal(false)
+  }
+
+  const handleGoToCart = () => {
+    setShowConfirmationModal(false)
+    router.push("/cart")
+  }
+
   return (
     <div className="bg-lacapke-background min-h-screen">
       <Header />
@@ -569,9 +557,40 @@ export default function MenuPage() {
           ]}
           activeCategory={activeCategory}
           onCategoryChange={scrollToCategory}
+          rightIcon={
+            <motion.svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 0 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              animate={{ x: [0, 5, 0] }}
+              transition={{
+                repeat: Number.POSITIVE_INFINITY,
+                repeatType: "loop",
+                duration: 1.5,
+                ease: "easeInOut",
+              }}
+            >
+              <path
+                d="M13 17L18 12L13 7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M6 17L11 12L6 7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </motion.svg>
+          }
         />
 
-        <div ref={(el) => (categoryRefs.current.brunch = el)} className="mb-16 scroll-mt-24" data-category="brunch">
+        <div ref={brunchRef} className="mb-16 scroll-mt-24" data-category="brunch">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("brunch")}
@@ -580,11 +599,7 @@ export default function MenuPage() {
           {renderBrunchContent()}
         </div>
 
-        <div
-          ref={(el) => (categoryRefs.current.breakfast = el)}
-          className="mb-16 scroll-mt-24"
-          data-category="breakfast"
-        >
+        <div ref={breakfastRef} className="mb-16 scroll-mt-24" data-category="breakfast">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("breakfast")}
@@ -593,7 +608,7 @@ export default function MenuPage() {
           {renderBreakfastContent()}
         </div>
 
-        <div ref={(el) => (categoryRefs.current.lunch = el)} className="mb-16 scroll-mt-24" data-category="lunch">
+        <div ref={lunchRef} className="mb-16 scroll-mt-24" data-category="lunch">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("lunch")}
@@ -602,7 +617,7 @@ export default function MenuPage() {
           {renderLunchContent()}
         </div>
 
-        <div ref={(el) => (categoryRefs.current.desserts = el)} className="mb-16 scroll-mt-24" data-category="desserts">
+        <div ref={dessertsRef} className="mb-16 scroll-mt-24" data-category="desserts">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("desserts")}
@@ -611,7 +626,7 @@ export default function MenuPage() {
           {renderDessertsContent()}
         </div>
 
-        <div ref={(el) => (categoryRefs.current.bakery = el)} className="mb-16 scroll-mt-24" data-category="bakery">
+        <div ref={bakeryRef} className="mb-16 scroll-mt-24" data-category="bakery">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("bakery")}
@@ -622,7 +637,7 @@ export default function MenuPage() {
           </div>
         </div>
 
-        <div ref={(el) => (categoryRefs.current.coffee = el)} className="mb-16 scroll-mt-24" data-category="coffee">
+        <div ref={coffeeRef} className="mb-16 scroll-mt-24" data-category="coffee">
           <div className="flex flex-col items-center mb-4">
             <h2 className="text-xl font-bold text-lacapke-charcoal uppercase tracking-wide mb-2">
               {getCategoryTitle("coffee")}
@@ -661,6 +676,45 @@ export default function MenuPage() {
           onDelete={handleDeleteCategory}
         />
       )}
+
+      <AnimatePresence>
+        {showConfirmationModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-lg"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <div className="text-center">
+                <h3 className="text-lg font-bold text-lacapke-charcoal mb-4">Producto agregado al pedido</h3>
+                <p className="text-lacapke-charcoal/70 mb-6">¿Desea agregar otro producto?</p>
+                <div className="flex gap-3">
+                  <Button
+                    className="flex-1 bg-[#0A4D8F] hover:bg-[#083d73] text-white rounded-xl"
+                    onClick={handleContinueShopping}
+                  >
+                    Sí
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-lacapke-charcoal/20 text-lacapke-charcoal rounded-xl bg-transparent"
+                    onClick={handleGoToCart}
+                  >
+                    No
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Toaster />
     </div>

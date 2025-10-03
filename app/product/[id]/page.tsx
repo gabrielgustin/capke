@@ -192,7 +192,8 @@ export default function ProductPage() {
     // Activar la animación del carrito
     setCartAnimation(true)
 
-    // Redirigir al menú inmediatamente
+    // Guardar flag para mostrar modal en la página de menú y redirigir
+    localStorage.setItem("showConfirmationModal", "true")
     router.push("/menu")
   }
 
