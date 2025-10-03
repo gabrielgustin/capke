@@ -44,10 +44,16 @@ export default function ProductPage() {
   const [selectedVariantPrice, setSelectedVariantPrice] = useState<number | null>(null)
   const [user, setUser] = useState<User | null>(null)
 
+  // Efecto inicial para posicionar la página arriba
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "auto",
+    })
+  }, [])
+
   // Cargar el producto por ID
   useEffect(() => {
-    window.scrollTo(0, 0)
-
     if (params.id) {
       const products = getProducts()
       const foundProduct = products.find((p) => p.id === params.id)

@@ -121,11 +121,12 @@ export function StickyCategoryCarousel({
       // IMPORTANTE: No detectar automáticamente durante scroll programático
       if (isScrollingProgrammatically) return
 
-      // Esperar un poco después del scroll para evitar conflictos
+      // Detección más inmediata sin debounce largo
       scrollTimeout = setTimeout(() => {
         if (!isInitialized || isScrollingProgrammatically) return
 
-        const scrollPosition = window.scrollY + 300 // Updated scroll position calculation
+        // Usar un punto de detección más alto en la pantalla
+        const scrollPosition = window.scrollY + 250
 
         const sections = [
           { id: "brunch" as ProductCategory, element: document.querySelector('[data-category="brunch"]') },
@@ -143,8 +144,8 @@ export function StickyCategoryCarousel({
             const rect = section.element.getBoundingClientRect()
             const elementTop = rect.top + window.scrollY
 
-            if (scrollPosition >= elementTop - 100) {
-              // Updated threshold comparison
+            // Detectar cuando la sección está cerca del top de la pantalla
+            if (scrollPosition >= elementTop - 50) {
               currentCategory = section.id
             }
           }
@@ -153,7 +154,7 @@ export function StickyCategoryCarousel({
         if (currentCategory !== activeCategory) {
           onCategoryChange(currentCategory)
         }
-      }, 50) // Reduced debounce timeout
+      }, 20) // Timeout muy reducido para respuesta casi inmediata
     }
 
     if (isInitialized) {

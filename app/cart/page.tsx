@@ -39,6 +39,14 @@ export default function CartPage() {
     orderNumber: string
   } | null>(null)
 
+  // Efecto inicial para posicionar la página arriba
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "auto",
+    })
+  }, [])
+
   // Cargar el carrito desde localStorage al iniciar
   useEffect(() => {
     const savedCart = localStorage.getItem("cart")
@@ -333,8 +341,6 @@ export default function CartPage() {
                   </Button>
                 </div>
 
-                
-
                 <h4 className="font-bold text-lacapke-charcoal mb-2">Detalle del pedido:</h4>
                 <div className="border-t border-lacapke-charcoal/10 pt-2 mb-4">
                   {orderDetails.items.map((item, index) => (
@@ -355,8 +361,6 @@ export default function CartPage() {
                     </div>
                   </div>
                 </div>
-
-                
 
                 <Button
                   className="w-full bg-[#0A4D8F] hover:bg-[#083d73] text-white py-4 font-medium rounded-2xl"

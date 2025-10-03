@@ -80,6 +80,15 @@ export default function MenuPage() {
     }, 1000)
   }
 
+  // Efecto inicial para posicionar la página arriba
+  useEffect(() => {
+    // Posicionar inmediatamente al cargar la página
+    window.scrollTo({
+      top: 0,
+      behavior: "auto",
+    })
+  }, [])
+
   useEffect(() => {
     const authUser = getAuthState()
     if (authUser) {
@@ -127,13 +136,6 @@ export default function MenuPage() {
         carousel.scrollLeft = 0
       }, 500)
     }
-  }, [])
-
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "auto",
-    })
   }, [])
 
   useEffect(() => {
