@@ -268,38 +268,8 @@ export default function MenuPage() {
   }
 
   const scrollToCategory = (category: ProductCategory) => {
+    // Actualizar el estado de categoría activa
     setActiveCategory(category)
-
-    if (document.activeElement && document.activeElement.tagName === "BUTTON") {
-      let ref = null
-      switch (category) {
-        case "breakfast":
-          ref = breakfastRef
-          break
-        case "brunch":
-          ref = brunchRef
-          break
-        case "lunch":
-          ref = lunchRef
-          break
-        case "desserts":
-          ref = dessertsRef
-          break
-        case "bakery":
-          ref = bakeryRef
-          break
-        case "coffee":
-          ref = coffeeRef
-          break
-      }
-
-      if (ref && ref.current) {
-        ref.current.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        })
-      }
-    }
   }
 
   const isAdmin = user?.username === "Admin1"

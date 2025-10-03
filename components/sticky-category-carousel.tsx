@@ -29,14 +29,7 @@ export function StickyCategoryCarousel({
   const [originalTop, setOriginalTop] = useState(0)
   const [hasOverflow, setHasOverflow] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
-  const [categoryRefs, setCategoryRefs] = useState<Record<ProductCategory, HTMLElement | null>>({
-    breakfast: null,
-    brunch: null,
-    lunch: null,
-    desserts: null,
-    bakery: null,
-    coffee: null,
-  })
+  const [isScrollingProgrammatically, setIsScrollingProgrammatically] = useState(false)
 
   const checkForOverflow = () => {
     if (carouselRef.current) {
@@ -117,50 +110,92 @@ export function StickyCategoryCarousel({
 
   // Efecto para detectar la categoría activa basada en el scroll
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout | null = null
+
     const handleScroll = () => {
-      if (!isInitialized) return
+      // Cancelar el timeout anterior si existe
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout)
+      }
 
-      const scrollPosition = window.scrollY + window.innerHeight / 3
+      // IMPORTANTE: No detectar automáticamente durante scroll programático
+      if (isScrollingProgrammatically) return
 
-      // Buscar todas las secciones de categorías en el DOM
-      const sections = [
-        { id: "brunch" as ProductCategory, element: document.querySelector('[data-category="brunch"]') },
-        { id: "breakfast" as ProductCategory, element: document.querySelector('[data-category="breakfast"]') },
-        { id: "lunch" as ProductCategory, element: document.querySelector('[data-category="lunch"]') },
-        { id: "desserts" as ProductCategory, element: document.querySelector('[data-category="desserts"]') },
-        { id: "bakery" as ProductCategory, element: document.querySelector('[data-category="bakery"]') },
-        { id: "coffee" as ProductCategory, element: document.querySelector('[data-category="coffee"]') },
-      ]
+      // Esperar un poco después del scroll para evitar conflictos
+      scrollTimeout = setTimeout(() => {
+        if (!isInitialized || isScrollingProgrammatically) return
 
-      let currentCategory: ProductCategory = "brunch"
+        const scrollPosition = window.scrollY + 300 // Updated scroll position calculation
 
-      for (const section of sections) {
-        if (section.element) {
-          const rect = section.element.getBoundingClientRect()
-          const elementTop = rect.top + window.scrollY
+        const sections = [
+          { id: "brunch" as ProductCategory, element: document.querySelector('[data-category="brunch"]') },
+          { id: "breakfast" as ProductCategory, element: document.querySelector('[data-category="breakfast"]') },
+          { id: "lunch" as ProductCategory, element: document.querySelector('[data-category="lunch"]') },
+          { id: "desserts" as ProductCategory, element: document.querySelector('[data-category="desserts"]') },
+          { id: "bakery" as ProductCategory, element: document.querySelector('[data-category="bakery"]') },
+          { id: "coffee" as ProductCategory, element: document.querySelector('[data-category="coffee"]') },
+        ]
 
-          if (scrollPosition >= elementTop - 100) {
-            currentCategory = section.id
+        let currentCategory: ProductCategory = "brunch"
+
+        for (const section of sections) {
+          if (section.element) {
+            const rect = section.element.getBoundingClientRect()
+            const elementTop = rect.top + window.scrollY
+
+            if (scrollPosition >= elementTop - 100) {
+              // Updated threshold comparison
+              currentCategory = section.id
+            }
           }
         }
-      }
 
-      if (currentCategory !== activeCategory) {
-        onCategoryChange(currentCategory)
-      }
+        if (currentCategory !== activeCategory) {
+          onCategoryChange(currentCategory)
+        }
+      }, 50) // Reduced debounce timeout
     }
 
-    // Solo activar después de la inicialización
     if (isInitialized) {
       window.addEventListener("scroll", handleScroll, { passive: true })
-      // Llamar una vez para establecer la categoría inicial
       handleScroll()
     }
 
     return () => {
       window.removeEventListener("scroll", handleScroll)
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout)
+      }
     }
-  }, [isInitialized, activeCategory, onCategoryChange])
+  }, [isInitialized, activeCategory, onCategoryChange, isScrollingProgrammatically])
+
+  const handleCategoryClick = (categoryId: ProductCategory) => {
+    // Activar el flag inmediatamente
+    setIsScrollingProgrammatically(true)
+    onCategoryChange(categoryId)
+
+    const element = document.querySelector(`[data-category="${categoryId}"]`)
+    if (element) {
+      const headerOffset = 180
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.scrollY - headerOffset
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      })
+
+      // Aumentar significativamente el timeout para cubrir toda la animación del scroll
+      setTimeout(() => {
+        setIsScrollingProgrammatically(false)
+      }, 2000)
+    } else {
+      // Si no encuentra el elemento, desactivar inmediatamente
+      setTimeout(() => {
+        setIsScrollingProgrammatically(false)
+      }, 100)
+    }
+  }
 
   return (
     <>
@@ -178,8 +213,6 @@ export function StickyCategoryCarousel({
           }}
         >
           <div className="container-app py-1 pb-0 pt-0">
-            {/* Updated header */}
-
             <div
               className="overflow-x-auto pb-2 hide-scrollbar carousel-container"
               id="categories-carousel"
@@ -189,7 +222,7 @@ export function StickyCategoryCarousel({
                 {categories.map((category) => (
                   <motion.button
                     key={category.id}
-                    onClick={() => onCategoryChange(category.id)}
+                    onClick={() => handleCategoryClick(category.id)}
                     className="focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-0 active:outline-none hover:outline-none outline-none border-none rounded-xl transition-all w-20 flex-shrink-0"
                     style={{ WebkitTapHighlightColor: "transparent" }}
                     aria-label={`Seleccionar categoría ${category.name}`}
