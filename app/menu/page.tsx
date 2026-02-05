@@ -143,6 +143,18 @@ export default function MenuPage() {
     if (shouldShowModal === "true") {
       setShowConfirmationModal(true)
       localStorage.removeItem("showConfirmationModal")
+
+      // Recargar el contador del carrito
+      const savedCart = localStorage.getItem("cart")
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart) as CartItem[]
+          const totalItems = parsedCart.reduce((sum, item) => sum + item.quantity, 0)
+          setCartItemCount(totalItems)
+        } catch (e) {
+          console.error("Error parsing cart", e)
+        }
+      }
     }
   }, [])
 

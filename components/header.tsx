@@ -84,7 +84,7 @@ export function Header() {
           </div>
           <Link href="/" className="text-center transform hover:scale-105 transition-transform"></Link>
           <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-24 h-12 md:w-32 md:h-16 hidden md:block">
-            <Image src="/images/design-mode/logito.png" alt="Autogestiva Logo" fill style={{ objectFit: "contain" }} />
+            
           </div>
         </div>
       </header>
