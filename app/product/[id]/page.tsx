@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Minus, Plus, ShoppingBag, ArrowLeft, Edit } from "lucide-react"
+import { Minus, Plus, ShoppingBag, ArrowLeft, Edit, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { getAuthState, type User } from "@/lib/auth"
@@ -43,6 +43,7 @@ export default function ProductPage() {
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null)
   const [selectedVariantPrice, setSelectedVariantPrice] = useState<number | null>(null)
   const [user, setUser] = useState<User | null>(null)
+  const [addedToCart, setAddedToCart] = useState(false)
 
   // Efecto inicial para posicionar la página arriba
   useEffect(() => {
@@ -195,12 +196,17 @@ export default function ProductPage() {
     const newTotalItems = updatedCart.reduce((sum, item) => sum + item.quantity, 0)
     setCartItemCount(newTotalItems)
 
-    // Activar la animación del carrito
+    // Activar la animacion del carrito
     setCartAnimation(true)
 
-    // Guardar flag para mostrar modal en la página de menú y redirigir
-    localStorage.setItem("showConfirmationModal", "true")
-    router.push("/menu")
+    // Mostrar feedback visual de producto agregado
+    setAddedToCart(true)
+    setTimeout(() => {
+      setAddedToCart(false)
+    }, 2000)
+
+    // Resetear cantidad a 1 para siguiente agregado
+    setQuantity(1)
   }
 
   // Función para manejar el inicio de sesión exitoso
@@ -395,28 +401,20 @@ export default function ProductPage() {
             >
               ${totalPrice.toFixed(2)}
             </motion.div>
-            <motion.button
+            <button
               className={cn(
-                "bg-[#0A4D8F] hover:bg-[#083d73] text-white border-0 px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-all duration-300",
+                "text-white border-0 px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors duration-200",
+                addedToCart
+                  ? "bg-green-600"
+                  : "bg-[#0A4D8F] hover:bg-[#083d73]",
                 product.price === 0 && "opacity-50 cursor-not-allowed",
               )}
               onClick={addToCart}
-              disabled={product.price === 0}
-              variants={addToCartAnimation}
-              whileHover="hover"
-              whileTap="tap"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-                delay: 0.8,
-              }}
+              disabled={product.price === 0 || addedToCart}
             >
-              {product.price === 0 ? "No disponible" : "Agregar al pedido"}
-              <ShoppingBag className="h-4 w-4" />
-            </motion.button>
+              {product.price === 0 ? "No disponible" : addedToCart ? "Agregado" : "Agregar al pedido"}
+              {addedToCart ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
+            </button>
           </motion.div>
         </div>
       </div>
@@ -455,17 +453,29 @@ export default function ProductPage() {
                 </button>
               </div>
 
-              {/* Botón de agregar */}
+              {/* Boton de agregar */}
               <button
                 onClick={addToCart}
-                disabled={product.price === 0}
+                disabled={product.price === 0 || addedToCart}
                 className={cn(
-                  "bg-tupedido-blue text-white font-bold py-2.5 md:py-3 px-4 md:px-6 rounded-md flex items-center justify-center shadow-md hover:opacity-90 transition-opacity",
+                  "text-white font-bold py-2.5 md:py-3 px-4 md:px-6 rounded-md flex items-center justify-center shadow-md transition-colors duration-200",
+                  addedToCart
+                    ? "bg-green-600"
+                    : "bg-tupedido-blue hover:opacity-90",
                   product.price === 0 && "opacity-50 cursor-not-allowed",
                 )}
               >
-                <span className="mr-2 text-sm md:text-base">{product.price === 0 ? "No disponible" : "Pedir"}</span>
-                {product.price > 0 && <span className="text-sm md:text-base">{formatPrice(totalPrice)}</span>}
+                {addedToCart ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    <span className="text-sm md:text-base">Agregado</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2 text-sm md:text-base">{product.price === 0 ? "No disponible" : "Agregar"}</span>
+                    {product.price > 0 && <span className="text-sm md:text-base">{formatPrice(totalPrice)}</span>}
+                  </>
+                )}
               </button>
             </div>
           </div>
