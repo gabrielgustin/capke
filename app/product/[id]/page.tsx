@@ -397,7 +397,7 @@ export default function ProductPage() {
             </motion.div>
             <motion.button
               className={cn(
-                "bg-[#0A4D8F] hover:bg-[#083d73] text-white border-0 px-6 py-6 rounded-lg flex items-center gap-2 transition-all duration-300",
+                "bg-[#0A4D8F] hover:bg-[#083d73] text-white border-0 px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-all duration-300",
                 product.price === 0 && "opacity-50 cursor-not-allowed",
               )}
               onClick={addToCart}
@@ -414,8 +414,8 @@ export default function ProductPage() {
                 delay: 0.8,
               }}
             >
-              {product.price === 0 ? "No disponible" : "Pedir al pedido"}
-              <ShoppingBag className="h-5 w-5" />
+              {product.price === 0 ? "No disponible" : "Agregar al pedido"}
+              <ShoppingBag className="h-4 w-4" />
             </motion.button>
           </motion.div>
         </div>
