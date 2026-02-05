@@ -196,17 +196,9 @@ export default function ProductPage() {
     const newTotalItems = updatedCart.reduce((sum, item) => sum + item.quantity, 0)
     setCartItemCount(newTotalItems)
 
-    // Activar la animacion del carrito
-    setCartAnimation(true)
-
-    // Mostrar feedback visual de producto agregado
-    setAddedToCart(true)
-    setTimeout(() => {
-      setAddedToCart(false)
-    }, 2000)
-
-    // Resetear cantidad a 1 para siguiente agregado
-    setQuantity(1)
+    // Guardar flag para mostrar modal de confirmacion en la pagina de menu y redirigir
+    localStorage.setItem("showConfirmationModal", "true")
+    router.push("/menu")
   }
 
   // Función para manejar el inicio de sesión exitoso
