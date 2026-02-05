@@ -249,14 +249,7 @@ export default function ProductPage() {
         <div className="relative lg:w-1/2 lg:pt-0 pt-4">
           {/* Botón de retroceso - Solo visible en desktop */}
           <div className="hidden lg:block mb-4 mt-0">
-            <Button
-              variant="outline"
-              className="text-lacapke-charcoal hover:bg-lacapke-background border-lacapke-charcoal/20 bg-transparent"
-              onClick={() => router.back()}
-            >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Volver al menú
-            </Button>
+            
           </div>
 
           {/* Imagen del producto */}
